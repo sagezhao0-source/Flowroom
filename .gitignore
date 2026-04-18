@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+dist/
+android/.gradle/
+android/.idea/
+android/app/build/
+android/build/
+android/local.properties
+android/capacitor.settings.gradle
+android/gradle.properties.user
+android/.gradle/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Capacitor
+android/app/src/main/assets/capacitor.config.json

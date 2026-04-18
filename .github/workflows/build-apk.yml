@@ -1,0 +1,65 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build web app
+      run: npm run build
+
+    - name: Sync Capacitor
+      run: npx cap sync
+
+    - name: Build Debug APK
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleDebug
+
+    - name: Build Release APK (unsigned)
+      run: |
+        cd android
+        ./gradlew assembleRelease
+
+    - name: Upload Debug APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: minimal-productivity-app-debug-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        if-no-files-found: error
+
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: minimal-productivity-app-release-apk
+        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+        if-no-files-found: error
