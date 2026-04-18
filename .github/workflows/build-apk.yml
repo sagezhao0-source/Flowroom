@@ -7,6 +7,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:  # Allow manual triggering
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # 使用Node.js 24避免弃用警告
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,20 +18,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
+    - name: Setup Node.js 24
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'  # 使用20，但环境变量会强制使用24
         cache: 'npm'
 
-    - name: Setup Java
+    - name: Setup Java 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
 
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
+      uses: android-actions/setup-android@v3
+
+    - name: Accept Android Licenses
+      run: |
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
+        echo "Android SDK setup complete"
 
     - name: Install dependencies
       run: npm ci
@@ -39,16 +47,17 @@ jobs:
     - name: Sync Capacitor
       run: npx cap sync
 
-    - name: Build Debug APK
+    - name: Build Android APK
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug
+        echo "Building Debug APK..."
+        ./gradlew assembleDebug --stacktrace
+        echo "Debug APK built successfully"
 
-    - name: Build Release APK (unsigned)
-      run: |
-        cd android
-        ./gradlew assembleRelease
+        echo "Building Release APK..."
+        ./gradlew assembleRelease --stacktrace
+        echo "Release APK built successfully"
 
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
